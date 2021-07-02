@@ -14,6 +14,7 @@
 		07D8955C268F854C009CAE99 /* Pix4DApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D8955B268F854C009CAE99 /* Pix4DApp.swift */; };
 		07D8955E268F8A32009CAE99 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D8955D268F8A32009CAE99 /* CameraController.swift */; };
 		07D89561268F8F9D009CAE99 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D89560268F8F9D009CAE99 /* CameraViewController.swift */; };
+		07D89564268FA00E009CAE99 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 07D89563268FA00E009CAE99 /* Launch Screen.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		07D8955B268F854C009CAE99 /* Pix4DApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pix4DApp.swift; sourceTree = "<group>"; };
 		07D8955D268F8A32009CAE99 /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraController.swift; sourceTree = "<group>"; };
 		07D89560268F8F9D009CAE99 /* CameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
+		07D89563268FA00E009CAE99 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +60,7 @@
 		07D89546268F8322009CAE99 /* Pix4DScene */ = {
 			isa = PBXGroup;
 			children = (
+				07D89562268F9D37009CAE99 /* Helpers */,
 				07D8955F268F8F90009CAE99 /* ViewControllers */,
 				07D89549268F8322009CAE99 /* ContentView.swift */,
 				07D8954B268F8322009CAE99 /* Experience.rcproject */,
@@ -65,7 +68,7 @@
 				07D89552268F8323009CAE99 /* Info.plist */,
 				07D8954F268F8323009CAE99 /* Preview Content */,
 				07D8955B268F854C009CAE99 /* Pix4DApp.swift */,
-				07D8955D268F8A32009CAE99 /* CameraController.swift */,
+				07D89563268FA00E009CAE99 /* Launch Screen.storyboard */,
 			);
 			path = Pix4DScene;
 			sourceTree = "<group>";
@@ -84,6 +87,14 @@
 				07D89560268F8F9D009CAE99 /* CameraViewController.swift */,
 			);
 			path = ViewControllers;
+			sourceTree = "<group>";
+		};
+		07D89562268F9D37009CAE99 /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				07D8955D268F8A32009CAE99 /* CameraController.swift */,
+			);
+			path = Helpers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -143,6 +154,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				07D89564268FA00E009CAE99 /* Launch Screen.storyboard in Resources */,
 				07D89551268F8323009CAE99 /* Preview Assets.xcassets in Resources */,
 				07D8954E268F8323009CAE99 /* Assets.xcassets in Resources */,
 			);

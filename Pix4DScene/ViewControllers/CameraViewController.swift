@@ -8,7 +8,6 @@
 import UIKit
 import SwiftUI
 
-
 final class CameraViewController: UIViewController {
     let cameraController = CameraController()
     var previewView: UIView!

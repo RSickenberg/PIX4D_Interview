@@ -11,9 +11,7 @@ import SwiftUI
 struct Pix4DScene: App {
     var body: some Scene {
         WindowGroup {
-            NavigationView {
-                ContentView()
-            }
+            ContentView()
         }
     }
 }

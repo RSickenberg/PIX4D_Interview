@@ -13,7 +13,9 @@ import AVFoundation
 struct ContentView : View {
     var body: some View {
         CameraViewController()
-            .edgesIgnoringSafeArea(.top)
+        .background(Color.blue)
+        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+        .edgesIgnoringSafeArea(.all)
     }
 }
 

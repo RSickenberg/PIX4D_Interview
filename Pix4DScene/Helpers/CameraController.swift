@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 import AVFoundation
 
 enum CameraControllerError: Swift.Error {
@@ -17,14 +18,20 @@ enum CameraControllerError: Swift.Error {
     case unknown
 }
 
-class CameraController: NSObject {
-    var captureSession: AVCaptureSession?
+class CameraController: NSObject, AVCaptureMetadataOutputObjectsDelegate, ObservableObject {
+    @Published var captureSession: AVCaptureSession?
+    @Published var previewLayer: AVCaptureVideoPreviewLayer?
     var backCamera: AVCaptureDevice?
     var backCameraInput: AVCaptureDeviceInput?
-    var previewLayer: AVCaptureVideoPreviewLayer?
 
     func prepare(completion: @escaping(Error?) -> Void) {
         func createCaptureSession() {
+            AVCaptureDevice.requestAccess(for: .video, completionHandler: { flag in
+                if !flag {
+                    abort()
+                }
+            })
+
             self.captureSession = AVCaptureSession()
         }
 
@@ -46,6 +53,15 @@ class CameraController: NSObject {
                     captureSession.addInput(self.backCameraInput!)
                 } else {
                     throw CameraControllerError.inputsAreInvalid
+                }
+
+                let metadataOutput = AVCaptureMetadataOutput()
+
+                if (captureSession.canAddOutput(metadataOutput)) {
+                    captureSession.addOutput(metadataOutput)
+
+                    metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
+                    metadataOutput.metadataObjectTypes = [.qr]
                 }
             } else {
                 throw CameraControllerError.noCamerasAvailable
@@ -77,10 +93,11 @@ class CameraController: NSObject {
         guard let captureSession = self.captureSession, captureSession.isRunning else { throw CameraControllerError.captureSessionIsMissing }
 
         self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        self.previewLayer?.videoGravity = AVLayerVideoGravity.resizeAspectFill
+        self.previewLayer?.videoGravity = .resizeAspectFill
         self.previewLayer?.connection?.videoOrientation = .portrait
 
+        self.previewLayer!.frame = view.layer.bounds
+        self.previewLayer!.position = CGPoint(x: view.layer.bounds.midX, y: view.layer.bounds.midY)
         view.layer.insertSublayer(self.previewLayer!, at: 0)
-        self.previewLayer!.frame = view.frame
     }
 }
