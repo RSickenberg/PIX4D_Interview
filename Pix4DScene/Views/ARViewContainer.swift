@@ -16,6 +16,10 @@ enum ARViewError: Error {
     case arViewNotSet
 }
 
+protocol ARViewControllerDelegate: AnyObject {
+    func overlayIsActive(_ vc: ARViewController, state: Bool)
+}
+
 class ARViewController: UIViewController {
     var arView: ARView?
     var coachingView: ARCoachingOverlayView?
@@ -32,7 +36,13 @@ class ARViewController: UIViewController {
             }
         }
     }
-    var overlayIsActive = false
+    var overlayIsActive = false {
+        didSet {
+            debugPrint("Overlay state is \(overlayIsActive)")
+            self.delegate?.overlayIsActive(self, state: overlayIsActive)
+        }
+    }
+    weak var delegate: ARViewControllerDelegate?
 
     override func viewDidLoad() {
         self.arView = ARView(frame: .zero)
@@ -166,11 +176,11 @@ extension ARViewController: ARCoachingOverlayViewDelegate {
     }
 
     func coachingOverlayViewWillActivate(_ coachingOverlayView: ARCoachingOverlayView) {
-        self.overlayIsActive = coachingOverlayView.isActive
+        self.overlayIsActive = true
     }
 
     func coachingOverlayViewDidDeactivate(_ coachingOverlayView: ARCoachingOverlayView) {
-        self.overlayIsActive = coachingOverlayView.isActive
+        self.overlayIsActive = false
     }
 }
 
@@ -179,15 +189,30 @@ struct ARViewContainer: UIViewControllerRepresentable {
     @Binding var overlayIsActive: Bool
     @Binding var isRecording: Bool
 
+    class Coordinator: ARViewControllerDelegate {
+        var overlayState: Binding<Bool>
+
+        init(overlayState: Binding<Bool>) {
+            self.overlayState = overlayState
+        }
+
+        func overlayIsActive(_ vc: ARViewController, state: Bool) {
+            overlayState.wrappedValue = state
+        }
+    }
+
     func makeUIViewController(context: UIViewControllerRepresentableContext<ARViewContainer>) -> ARViewController {
         let controller = ARViewController()
         controller.isRecording = isRecording
-        self.overlayIsActive = controller.overlayIsActive
+        controller.delegate = context.coordinator
         return controller
     }
 
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: UIViewControllerRepresentableContext<ARViewContainer>) {
         uiViewController.isRecording = isRecording
-        self.overlayIsActive = uiViewController.overlayIsActive
+    }
+
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(overlayState: $overlayIsActive)
     }
 }

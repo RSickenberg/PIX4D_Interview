@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State var isRecording = false
-    @State var haveOverlayVisible: Bool = false
+    @State var haveOverlayVisible = false
 
     var body: some View {
         ZStack {
@@ -19,8 +19,7 @@ struct ContentView: View {
             VStack {
                 Spacer()
                     .frame(height: UIScreen.main.bounds.size.height / 1.3)
-                ControlPannel(isRecording: $isRecording)
-                    .opacity(haveOverlayVisible ? 0.0 : 1.0)
+                ControlPannel(isRecording: $isRecording, shouldBeVisible: $haveOverlayVisible)
             }
         }
     }
@@ -34,6 +33,7 @@ struct ControlPannel: View {
     @State private var distanceThresold = 10
 
     @Binding var isRecording: Bool
+    @Binding var shouldBeVisible: Bool
 
     private func toggleButton() -> Void {
         self.isRecording = !self.isRecording
@@ -70,6 +70,7 @@ struct ControlPannel: View {
                 .cornerRadius(30)
             }
             .padding(.horizontal, 10.0)
+            .opacity(shouldBeVisible ? 0.0 : 1.0)
         }
     }
 }
