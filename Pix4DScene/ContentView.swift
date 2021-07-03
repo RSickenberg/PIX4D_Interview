@@ -9,16 +9,18 @@ import SwiftUI
 
 struct ContentView: View {
     @State var isRecording = false
+    @State var haveOverlayVisible: Bool = false
 
     var body: some View {
         ZStack {
-            ARViewContainer(isRecording: $isRecording)
+            ARViewContainer(overlayIsActive: $haveOverlayVisible, isRecording: $isRecording)
                 .ignoresSafeArea()
                 .foregroundColor(.none)
             VStack {
                 Spacer()
                     .frame(height: UIScreen.main.bounds.size.height / 1.3)
                 ControlPannel(isRecording: $isRecording)
+                    .opacity(haveOverlayVisible ? 0.0 : 1.0)
             }
         }
     }

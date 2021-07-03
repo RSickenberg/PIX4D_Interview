@@ -18,12 +18,21 @@ enum ARViewError: Error {
 
 class ARViewController: UIViewController {
     var arView: ARView?
+    var coachingView: ARCoachingOverlayView?
     let isDebug = true
     var isRecording = false {
         didSet {
             try? self.recordingHasChanged()
         }
     }
+    var arCamera: ARCamera? {
+        didSet {
+            DispatchQueue(label: "com.pix4d.arcamera").async { [weak self] in
+                self?.cameraCoordinates(coordinates: self?.arCamera?.transform)
+            }
+        }
+    }
+    var overlayIsActive = false
 
     override func viewDidLoad() {
         self.arView = ARView(frame: .zero)
@@ -39,6 +48,19 @@ class ARViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
+        let coachingView = ARCoachingOverlayView(frame: .zero)
+        coachingView.frame = arView!.bounds
+        coachingView.delegate = self
+        coachingView.goal = .tracking
+        coachingView.session = arView!.session
+
+        self.arView!.addSubview(coachingView)
+        self.coachingView = coachingView
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
         configureARSession()
     }
 
@@ -50,13 +72,13 @@ class ARViewController: UIViewController {
     }
 
     private func configureARSession() {
-        let config = ARWorldTrackingConfiguration()
+        let config = ARWorldTrackingConfiguration() // Maybe use ARPositionalTrackingConfiguration?
         config.planeDetection = [.vertical, .horizontal]
         config.sceneReconstruction = .mesh // Classification of structural scene isn't needed for this exercise
+        // config.initialWorldMap = self.precedentWorldMap
 
-        if isRecording {
-            self.arView!.session.run(config, options: .resetTracking)
-        }
+        self.arView!.session.run(config, options: .resetTracking)
+        self.coachingView?.setActive(true, animated: true)
     }
 
     private func configureARScene() throws {
@@ -75,6 +97,11 @@ class ARViewController: UIViewController {
             view.debugOptions.remove(.showWorldOrigin)
             view.debugOptions.remove(.showSceneUnderstanding)
         }
+
+        view.environment.background = .cameraFeed()
+        view.environment.reverb = .automatic
+        view.environment.sceneUnderstanding.options.insert(.receivesLighting)
+        view.environment.sceneUnderstanding.options.insert(.occlusion)
     }
 
     private func recordingHasChanged() throws {
@@ -86,10 +113,12 @@ class ARViewController: UIViewController {
         if isRecording {
             configureARSession()
         } else {
-            self.arView!.session.pause()
+            view.session.pause()
         }
+    }
 
-        print(view.session)
+    private func cameraCoordinates(coordinates: simd_float4x4?) {
+
     }
 }
 
@@ -99,9 +128,9 @@ extension ARViewController: ARSessionDelegate {
     }
 
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        session.getCurrentWorldMap(completionHandler: { map, error in
-            print(map)
-        })
+        DispatchQueue(label: "com.pix4d.scene.worldmap").async { [weak self] in
+            self?.arCamera = frame.camera
+        }
     }
 
     func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
@@ -131,18 +160,34 @@ extension ARViewController: ARSessionDelegate {
     }
 }
 
+extension ARViewController: ARCoachingOverlayViewDelegate {
+    func coachingOverlayViewDidRequestSessionReset(_ coachingOverlayView: ARCoachingOverlayView) {
+        self.configureARSession()
+    }
+
+    func coachingOverlayViewWillActivate(_ coachingOverlayView: ARCoachingOverlayView) {
+        self.overlayIsActive = coachingOverlayView.isActive
+    }
+
+    func coachingOverlayViewDidDeactivate(_ coachingOverlayView: ARCoachingOverlayView) {
+        self.overlayIsActive = coachingOverlayView.isActive
+    }
+}
+
 struct ARViewContainer: UIViewControllerRepresentable {
     typealias UIViewControllerType = ARViewController
-
+    @Binding var overlayIsActive: Bool
     @Binding var isRecording: Bool
 
     func makeUIViewController(context: UIViewControllerRepresentableContext<ARViewContainer>) -> ARViewController {
         let controller = ARViewController()
         controller.isRecording = isRecording
+        self.overlayIsActive = controller.overlayIsActive
         return controller
     }
 
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: UIViewControllerRepresentableContext<ARViewContainer>) {
         uiViewController.isRecording = isRecording
+        self.overlayIsActive = uiViewController.overlayIsActive
     }
 }
