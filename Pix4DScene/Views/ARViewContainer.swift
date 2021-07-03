@@ -21,7 +21,7 @@ protocol ARViewControllerDelegate: AnyObject {
 }
 
 class ARViewController: UIViewController {
-    var arView: ARView?
+    var arView: ARSCNView?
     var coachingView: ARCoachingOverlayView?
     let isDebug = true
     var isRecording = false {
@@ -45,12 +45,11 @@ class ARViewController: UIViewController {
     weak var delegate: ARViewControllerDelegate?
 
     override func viewDidLoad() {
-        self.arView = ARView(frame: .zero)
+        self.arView = ARSCNView(frame: .zero)
         self.arView!.contentMode = .scaleToFill
         self.arView!.frame = view.bounds
 
         self.arView!.session.delegate = self
-        self.arView?.automaticallyConfigureSession = false
 
         view.insertSubview(arView!, at: 0)
     }
@@ -98,20 +97,20 @@ class ARViewController: UIViewController {
 
         if isDebug {
             view.debugOptions.insert(.showFeaturePoints)
-            view.debugOptions.insert(.showPhysics)
             view.debugOptions.insert(.showWorldOrigin)
-            view.debugOptions.insert(.showSceneUnderstanding)
+            view.debugOptions.insert(.showCameras)
+            view.debugOptions.insert(.showSkeletons)
         } else {
             view.debugOptions.remove(.showFeaturePoints)
-            view.debugOptions.remove(.showPhysics)
             view.debugOptions.remove(.showWorldOrigin)
-            view.debugOptions.remove(.showSceneUnderstanding)
+            view.debugOptions.remove(.showCameras)
+            view.debugOptions.remove(.showSkeletons)
         }
 
-        view.environment.background = .cameraFeed()
-        view.environment.reverb = .automatic
-        view.environment.sceneUnderstanding.options.insert(.receivesLighting)
-        view.environment.sceneUnderstanding.options.insert(.occlusion)
+//        view.environment.background = .cameraFeed()
+//        view.environment.reverb = .automatic
+//        view.environment.sceneUnderstanding.options.insert(.receivesLighting)
+//        view.environment.sceneUnderstanding.options.insert(.occlusion)
     }
 
     private func recordingHasChanged() throws {
@@ -127,8 +126,14 @@ class ARViewController: UIViewController {
         }
     }
 
-    private func cameraCoordinates(coordinates: simd_float4x4?) {
+    private func cameraCoordinates(coordinates: simd_float4x4?) {}
 
+    private func placeCube() {
+        let box: SCNBox = SCNBox(width: 0.2, height: 0.2, length: 0.2, chamferRadius: 10.0)
+        let node: SCNNode = SCNNode(geometry: box)
+
+        node.position = SCNVector3(x: 0, y: 0, z: -0.5);
+        arView?.scene.rootNode.addChildNode(node)
     }
 }
 
