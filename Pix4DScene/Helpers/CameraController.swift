@@ -21,6 +21,7 @@ enum CameraControllerError: Swift.Error {
 class CameraController: NSObject, AVCaptureMetadataOutputObjectsDelegate, ObservableObject {
     @Published var captureSession: AVCaptureSession?
     @Published var previewLayer: AVCaptureVideoPreviewLayer?
+    
     var backCamera: AVCaptureDevice?
     var backCameraInput: AVCaptureDeviceInput?
 

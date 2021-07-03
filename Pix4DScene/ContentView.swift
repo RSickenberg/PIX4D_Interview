@@ -12,30 +12,24 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
+            ARViewContainer(isRecording: $isRecording)
+                .ignoresSafeArea()
+                .foregroundColor(.none)
             VStack {
-                CameraViewController()
-                    .background(Color.white)
-                    .ignoresSafeArea()
-
+                Spacer()
+                    .frame(height: UIScreen.main.bounds.size.height / 1.3)
                 ControlPannel(isRecording: $isRecording)
             }
         }
     }
 }
 
-struct Blur: UIViewRepresentable {
-    var style: UIBlurEffect.Style = .systemMaterial
-    func makeUIView(context: Context) -> UIVisualEffectView {
-        return UIVisualEffectView(effect: UIBlurEffect(style: style))
-    }
-    func updateUIView(_ uiView: UIVisualEffectView, context: Context) {
-        uiView.effect = UIBlurEffect(style: style)
-    }
-}
-
 struct ControlPannel: View {
     @State private var angle = 0.0
     @State private var distance = 0.0
+
+    @State private var angleThresold = 49
+    @State private var distanceThresold = 10
 
     @Binding var isRecording: Bool
 
@@ -49,6 +43,7 @@ struct ControlPannel: View {
                 HStack() {
                     VStack {
                         Text("Angle: \(Int(angle))°")
+                            .foregroundColor(Int(angle) >= angleThresold ? .red : .black)
                         Slider(value: $angle, in: 0...360)
                     }
                     .padding(.leading, 10)
@@ -63,6 +58,7 @@ struct ControlPannel: View {
 
                     VStack(alignment: .center, spacing: 12) {
                         Text("Distance: \(Int(distance)) m")
+                            .foregroundColor(Int(distance) >= distanceThresold ? .red : .black)
                         Slider(value: $distance, in: 0...100)
                     }
                     .padding(.trailing, 10)

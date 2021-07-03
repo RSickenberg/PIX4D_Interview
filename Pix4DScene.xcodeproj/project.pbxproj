@@ -15,6 +15,8 @@
 		07D8955E268F8A32009CAE99 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D8955D268F8A32009CAE99 /* CameraController.swift */; };
 		07D89561268F8F9D009CAE99 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D89560268F8F9D009CAE99 /* CameraViewController.swift */; };
 		07D89564268FA00E009CAE99 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 07D89563268FA00E009CAE99 /* Launch Screen.storyboard */; };
+		07D89567269091B8009CAE99 /* BlurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D89566269091B8009CAE99 /* BlurView.swift */; };
+		07D8956926909CB3009CAE99 /* ARViewContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D8956826909CB3009CAE99 /* ARViewContainer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +30,8 @@
 		07D8955D268F8A32009CAE99 /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraController.swift; sourceTree = "<group>"; };
 		07D89560268F8F9D009CAE99 /* CameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
 		07D89563268FA00E009CAE99 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		07D89566269091B8009CAE99 /* BlurView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurView.swift; sourceTree = "<group>"; };
+		07D8956826909CB3009CAE99 /* ARViewContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARViewContainer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +64,7 @@
 		07D89546268F8322009CAE99 /* Pix4DScene */ = {
 			isa = PBXGroup;
 			children = (
+				07D89565269091AA009CAE99 /* Views */,
 				07D89562268F9D37009CAE99 /* Helpers */,
 				07D8955F268F8F90009CAE99 /* ViewControllers */,
 				07D89549268F8322009CAE99 /* ContentView.swift */,
@@ -95,6 +100,15 @@
 				07D8955D268F8A32009CAE99 /* CameraController.swift */,
 			);
 			path = Helpers;
+			sourceTree = "<group>";
+		};
+		07D89565269091AA009CAE99 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				07D89566269091B8009CAE99 /* BlurView.swift */,
+				07D8956826909CB3009CAE99 /* ARViewContainer.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -170,8 +184,10 @@
 				07D8954A268F8322009CAE99 /* ContentView.swift in Sources */,
 				07D89561268F8F9D009CAE99 /* CameraViewController.swift in Sources */,
 				07D8954C268F8322009CAE99 /* Experience.rcproject in Sources */,
+				07D8956926909CB3009CAE99 /* ARViewContainer.swift in Sources */,
 				07D8955E268F8A32009CAE99 /* CameraController.swift in Sources */,
 				07D8955C268F854C009CAE99 /* Pix4DApp.swift in Sources */,
+				07D89567269091B8009CAE99 /* BlurView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
