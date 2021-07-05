@@ -11,6 +11,7 @@ import RealityKit
 import SceneKit
 import CoreGraphics
 import ARKit
+import CoreVideo
 
 enum ARViewError: Error {
     case arViewNotSet
@@ -37,9 +38,13 @@ class ARViewController: UIViewController {
     var arCamera: ARCamera? {
         didSet {
             DispatchQueue(label: "com.pix4d.arcamera").async { [weak self] in
-                self?.cameraCoordinates(coordinates: self?.arCamera)
-                print("--- Current Distance of world origin in cm", self?.currentDistanceOfWorldOrigin as Any,
-                      "--- Current Angle of world origin in degree:", self?.currentAngleOfWorldOrigin as Any)
+                guard let self = self else { return }
+                self.cameraCoordinates(coordinates: self.arCamera)
+                print("--- Current Distance of \(self.useLastNodeArray ? "last node" : "world origin") in cm", self.currentDistanceOfWorldOrigin as Any,
+                      "--- Current Angle of world origin in degree:", self.currentAngleOfWorldOrigin as Any)
+                print("[DEBUG] The last node name is: \(self.arView?.scene.rootNode.childNodes.last?.name ?? "nil")")
+
+                self.computeAngleAndDistance()
             }
         }
     }
@@ -49,7 +54,7 @@ class ARViewController: UIViewController {
             self.delegate?.overlayIsActive(self, state: overlayIsActive)
         }
     }
-    var selectedAngle: Double = 0.0 {
+    var selectedAngle: Int = 0 {
         didSet {
             if oldValue != selectedAngle {
                 computeAngleAndDistance()
@@ -59,16 +64,26 @@ class ARViewController: UIViewController {
     var maxAngle: Int = 49
     var maxDistance: Int = 10
 
-    var selectedDistance: Double = 0.0 {
+    var selectedDistance: Int = 0 {
         didSet {
             if oldValue != selectedDistance {
                 computeAngleAndDistance()
             }
         }
     }
-    var numberOfFrames: Int = 0
+    var numberOfFrames: Int = 0 {
+        didSet {
+            if oldValue != numberOfFrames {
+                print("⚠️ TOOK PICTURE")
+                self.delegate?.imageCaptured(self, frameCount: numberOfFrames)
+            }
+        }
+    }
+
+    private var useLastNodeArray = false
     private var currentDistanceOfWorldOrigin: Float = 0.0 // !
     private var currentAngleOfWorldOrigin: Float = 0.0 // !
+    private var distanceFromLastNode: Float = 0.0
 
     weak var delegate: ARViewControllerDelegate?
 
@@ -107,8 +122,21 @@ class ARViewController: UIViewController {
         config.planeDetection = .vertical
         config.sceneReconstruction = .mesh // Classification of structural scene isn't needed for this exercise
         // config.initialWorldMap = self.precedentWorldMap
+        self.numberOfFrames = 0
 
-        self.arView!.session.run(config, options: .resetTracking)
+        self.arView!.session.run(config, options: [.resetTracking, .resetSceneReconstruction, .removeExistingAnchors])
+
+        guard let documentRoot = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+        guard let arViewSessionIdentifier = self.arView?.session.identifier else { return }
+        let directoryName = "session_\(arViewSessionIdentifier)"
+        let dataPath = documentRoot.appendingPathComponent(directoryName)
+        if !FileManager.default.fileExists(atPath: dataPath.path) {
+            do {
+                try FileManager.default.createDirectory(atPath: dataPath.path, withIntermediateDirectories: true, attributes: nil)
+            } catch {
+                print("[ERROR] Cannot create default directory")
+            }
+        }
     }
 
     private func configureARScene() throws {
@@ -120,12 +148,10 @@ class ARViewController: UIViewController {
             view.debugOptions.insert(.showFeaturePoints)
             view.debugOptions.insert(.showWorldOrigin)
             view.debugOptions.insert(.showCameras)
-            view.debugOptions.insert(.showSkeletons)
         } else {
             view.debugOptions.remove(.showFeaturePoints)
             view.debugOptions.remove(.showWorldOrigin)
             view.debugOptions.remove(.showCameras)
-            view.debugOptions.remove(.showSkeletons)
         }
     }
 
@@ -136,6 +162,7 @@ class ARViewController: UIViewController {
         try configureARScene()
 
         if isRecording {
+            print("--- Starting angle and distance calculation based on selection of [\(selectedAngle)°] and distance of [\(selectedDistance)cm] with a thresold of respective [\(maxAngle)°] and [\(maxDistance)cm]")
             configureARSession()
             computeAngleAndDistance()
         } else {
@@ -147,29 +174,110 @@ class ARViewController: UIViewController {
         guard let camera = coordinates else { return }
 //        guard let pointOfView = self.arView?.pointOfView?.transform else { return }
         guard let origin = self.arView?.scene.rootNode.simdTransform.columns.3 else { return }
+        guard let secondOrign = self.arView?.scene.rootNode.childNodes.last?.simdTransform.columns.3 else { return }
         guard let rotation = coordinates?.eulerAngles.z else { return } // Roll values
+        var distance: Float
 
 //        let orientation = SCNVector3(-pointOfView.m31, -pointOfView.m32, pointOfView.m33)
 //        let location = SCNVector3(pointOfView.m41, pointOfView.m42, pointOfView.m43)
 //        let currentPositionOfCamera = orientation + location
 
-        self.currentDistanceOfWorldOrigin = simd_distance(camera.transform.columns.3, origin) * 10
         self.currentAngleOfWorldOrigin = rotation * 10
 
-        self.delegate?.coordinatesUpdates(self, angle: self.currentAngleOfWorldOrigin, distance: self.currentDistanceOfWorldOrigin)
-    }
+        if self.useLastNodeArray {
+            print("--- Using second origin now, aka last node")
+            distance = simd_distance(camera.transform.columns.3, secondOrign) * 10
+            self.distanceFromLastNode = distance
+        } else {
+            distance = simd_distance(camera.transform.columns.3, origin) * 10
+            print("[DEBUG] Used world distance instead")
+        }
 
-    private func placeCube() {
-        let box: SCNBox = SCNBox(width: 0.2, height: 0.2, length: 0.2, chamferRadius: 0.0)
-        let node: SCNNode = SCNNode(geometry: box)
-
-        node.position = SCNVector3(x: 0, y: 0, z: -0.5); // Place the cube slightly in front of us
-        arView?.scene.rootNode.addChildNode(node)
+        self.currentDistanceOfWorldOrigin = distance
+        self.delegate?.coordinatesUpdates(self, angle: self.currentAngleOfWorldOrigin, distance: distance)
     }
 
     private func computeAngleAndDistance() {
         guard isRecording else { return }
-        print("--- Starting angle and distance calculation based on selection of [\(selectedAngle)°] and distance of [\(selectedDistance)cm] with a thresold of respective [\(maxAngle)°] and [\(maxDistance)cm]")
+        switch self.arCamera?.trackingState {
+        case .normal:
+            break
+        default:
+            print("Non-normalized tracking state, skipping this frame")
+            return
+        }
+
+        if self.arView?.session.currentFrame?.worldMappingStatus == .limited || self.arView?.session.currentFrame?.worldMappingStatus == .notAvailable {
+            return
+        }
+
+        // Si -15 est plus grand ou égal à l'angle selectionné ou si -15 est plus petit ou égal à l'angle sélectioné (neg)
+        if (Int(currentDistanceOfWorldOrigin) >= 5) {
+            if ((Int(currentAngleOfWorldOrigin) >= selectedAngle || (Int(currentAngleOfWorldOrigin) >= -selectedAngle)) && (Int(currentDistanceOfWorldOrigin) >= selectedDistance)) {
+                takeScreenCapture()
+            }
+        }
+    }
+
+    private func takeScreenCapture() {
+        guard let buffer = self.arView?.session.currentFrame?.capturedImage else {
+            print("Cannot buffer current frame image")
+            return
+        }
+        guard let framePosition = self.arView?.session.currentFrame?.camera.transform else {
+            print("Cannot get current frame position")
+            return
+        }
+        let frameTime = self.arView?.session.currentFrame?.timestamp
+        var imageIsProcessed = false
+
+        if !imageIsProcessed {
+            self.useLastNodeArray = true
+            placeCube()
+            if let wOrigin = self.arView?.scene.rootNode.simdTransform.columns.3 {
+                print("--- Cube Placed at the distance from origin of [\(simd_distance(framePosition.columns.3, wOrigin) * 10)]")
+            }
+            print("--- Distance from previous cube is [\(distanceFromLastNode)]")
+
+            self.numberOfFrames += 1
+        }
+
+        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+            imageIsProcessed = true
+            let ciImage = CIImage(cvImageBuffer: buffer)
+            ciImage.settingProperties(["coordinates": framePosition, "time": frameTime as Any])
+            let UIkitImage = UIImage(ciImage: ciImage)
+
+
+            let jpgData = UIkitImage.jpegData(compressionQuality: 0.2)
+            imageIsProcessed = false
+            self?.saveImage(image: jpgData, fileName: "img_\(frameTime?.description ?? "n/a")")
+            return
+        }
+    }
+
+    private func saveImage(image: Data?, fileName: String) {
+        guard let imageData = image else { return }
+        guard let documentRoot = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+        guard let arViewSessionIdentifier = self.arView?.session.identifier else { return }
+        let directoryName = "session_\(arViewSessionIdentifier)"
+        let dataPath = documentRoot.appendingPathComponent(directoryName)
+
+        do {
+            try imageData.write(to: dataPath.appendingPathExtension("\(fileName).jpg"))
+        } catch {
+            print("[ERROR] Cannot write image")
+        }
+    }
+
+    private func placeCube() {
+        let box: SCNBox = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.0)
+        let node: SCNNode = SCNNode(geometry: box)
+        node.name = "cube"
+        guard let cameraPosition = self.arView?.session.currentFrame?.camera.transform.columns.3 else { return }
+
+        node.position = SCNVector3(cameraPosition.x, cameraPosition.y, cameraPosition.z - 0.05) // Place the cube slightly in front of us
+        arView?.scene.rootNode.addChildNode(node)
     }
 }
 
@@ -277,8 +385,8 @@ struct ARViewContainer: UIViewControllerRepresentable {
         controller.isRecording = isRecording
         controller.maxAngle = angleThresold
         controller.maxDistance = distanceThresold
-        controller.selectedAngle = angle
-        controller.selectedDistance = distance
+        controller.selectedAngle = Int(angle)
+        controller.selectedDistance = Int(distance)
 
         return controller
     }
@@ -287,8 +395,8 @@ struct ARViewContainer: UIViewControllerRepresentable {
         uiViewController.isRecording = isRecording
         uiViewController.maxAngle = angleThresold
         uiViewController.maxDistance = distanceThresold
-        uiViewController.selectedAngle = angle
-        uiViewController.selectedDistance = distance
+        uiViewController.selectedAngle = Int(angle)
+        uiViewController.selectedDistance = Int(distance)
     }
 
     func makeCoordinator() -> Coordinator {

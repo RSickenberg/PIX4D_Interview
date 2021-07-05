@@ -12,9 +12,9 @@ struct ContentView: View {
     @State var haveOverlayVisible = false
 
     @State var angle: Double = -15.0
-    @State var distance: Double = 0.0
+    @State var distance: Double = 5.0
 
-    @State var angleThresold = 10
+    @State var angleThresold = 15
     @State var distanceThresold = 10
 
     // Computed values by ARKit and RealityKit
@@ -94,7 +94,7 @@ struct ControlPannel: View {
                     VStack(alignment: .center, spacing: 12) {
                         Text("Distance: \(Int(distance)) cm")
                             .foregroundColor(Int(distance) >= distanceThresold ? .red : .black)
-                        Slider(value: $distance, in: 0...100)
+                        Slider(value: $distance, in: 5...50)
                     }
                     .padding(.trailing, 10)
                 }
