@@ -17,6 +17,7 @@
 		07D89564268FA00E009CAE99 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 07D89563268FA00E009CAE99 /* Launch Screen.storyboard */; };
 		07D89567269091B8009CAE99 /* BlurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D89566269091B8009CAE99 /* BlurView.swift */; };
 		07D8956926909CB3009CAE99 /* ARViewContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D8956826909CB3009CAE99 /* ARViewContainer.swift */; };
+		07D8956C2691F187009CAE99 /* SCNVector3Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D8956B2691F187009CAE99 /* SCNVector3Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 		07D89563268FA00E009CAE99 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		07D89566269091B8009CAE99 /* BlurView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurView.swift; sourceTree = "<group>"; };
 		07D8956826909CB3009CAE99 /* ARViewContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARViewContainer.swift; sourceTree = "<group>"; };
+		07D8956B2691F187009CAE99 /* SCNVector3Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SCNVector3Extensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +66,7 @@
 		07D89546268F8322009CAE99 /* Pix4DScene */ = {
 			isa = PBXGroup;
 			children = (
+				07D8956A2691F179009CAE99 /* Extensions */,
 				07D89565269091AA009CAE99 /* Views */,
 				07D89562268F9D37009CAE99 /* Helpers */,
 				07D8955F268F8F90009CAE99 /* ViewControllers */,
@@ -109,6 +112,14 @@
 				07D8956826909CB3009CAE99 /* ARViewContainer.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		07D8956A2691F179009CAE99 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				07D8956B2691F187009CAE99 /* SCNVector3Extensions.swift */,
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -188,6 +199,7 @@
 				07D8955E268F8A32009CAE99 /* CameraController.swift in Sources */,
 				07D8955C268F854C009CAE99 /* Pix4DApp.swift in Sources */,
 				07D89567269091B8009CAE99 /* BlurView.swift in Sources */,
+				07D8956C2691F187009CAE99 /* SCNVector3Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
